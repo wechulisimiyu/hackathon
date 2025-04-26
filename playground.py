@@ -49,7 +49,7 @@ memory = Memory(
 )
 
 # Clear existing memories for fresh start
-memory.clear()
+# memory.clear()
 
 # Initialize Resend API key
 Emails.api_key = os.environ["RESEND_API_KEY"]

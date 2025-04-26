@@ -118,7 +118,7 @@ const ChatBlankState = () => {
         >
           <div className="flex items-center justify-center gap-x-2 whitespace-nowrap font-medium">
             <span className="flex items-center font-[600]">
-              This is an open-source
+              This is an assistant built with
             </span>
             <span className="inline-flex translate-y-[10px] scale-125 items-center transition-transform duration-200 hover:rotate-6">
               <Link
@@ -130,8 +130,8 @@ const ChatBlankState = () => {
                 <Icon type="agno-tag" size="default" />
               </Link>
             </span>
-            <span className="flex items-center font-[600]">
-              Agent UI, built with
+            {/* <span className="flex items-center font-[600]">
+              to hekp with
             </span>
             <span className="inline-flex translate-y-[5px] scale-125 items-center">
               <div className="relative ml-2 h-[40px] w-[90px]">
@@ -170,9 +170,9 @@ const ChatBlankState = () => {
                   </motion.div>
                 ))}
               </div>
-            </span>
+            </span> */}
           </div>
-          <p>For the full experience, visit the Agent Playground.</p>
+          <p>We can answer all your questions on blood donation.</p>
         </motion.h1>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
