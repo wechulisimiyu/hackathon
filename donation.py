@@ -1,8 +1,24 @@
 from textwrap import dedent
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from agno.agent import Agent
+from agno.playground import Playground, serve_playground_app
 from agno.models.groq import Groq
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.storage.sqlite import SqliteStorage
+import json
+import asyncio
+
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development only. In production, specify your UI domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_donation_assistant(model_id: str = "llama-3.3-70b-versatile") -> Agent:
     # Create a storage backend using SQLite
@@ -32,10 +48,40 @@ def get_donation_assistant(model_id: str = "llama-3.3-70b-versatile") -> Agent:
         markdown=True,
     )
 
+agent = get_donation_assistant()
+
+@app.websocket("/chat")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    
+    try:
+        while True:
+            message = await websocket.receive_text()
+            data = json.loads(message)
+            
+            if "message" not in data:
+                await websocket.send_json({"error": "No message provided"})
+                continue
+                
+            # Get response from agent
+            async for chunk in agent.astream_response(data["message"]):
+                await websocket.send_json({
+                    "type": "chunk",
+                    "content": chunk
+                })
+            
+            # Send completion message
+            await websocket.send_json({
+                "type": "done"
+            })
+            
+    except Exception as e:
+        await websocket.close()
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Blood Donation Assistant API is running"}
+
 if __name__ == "__main__":
-    assistant = get_donation_assistant()
-    while True:
-        question = input("\nAsk a question about blood donation (or type 'quit' to exit): ")
-        if question.lower() == 'quit':
-            break
-        assistant.print_response(question, stream=True)
+    import uvicorn
+    uvicorn.run("donation:app", host="127.0.0.1", port=8000, reload=True)

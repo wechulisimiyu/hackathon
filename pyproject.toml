@@ -7,5 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
     "agno>=1.4.2",
     "duckduckgo-search>=8.0.1",
+    "fastapi[standard]>=0.115.12",
     "groq>=0.23.1",
+    "lancedb>=0.22.0",
+    "python-dotenv>=1.1.0",
+    "sqlalchemy>=2.0.40",
 ]
