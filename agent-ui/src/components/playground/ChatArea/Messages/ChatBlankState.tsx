@@ -172,7 +172,7 @@ const ChatBlankState = () => {
               </div>
             </span> */}
           </div>
-          <p>We can answer all your questions on blood donation.</p>
+          <p>We can answer all your questions on blood donation. You can also schedule the next time you donate</p>
         </motion.h1>
         <motion.div
           initial={{ opacity: 0, y: 10 }}

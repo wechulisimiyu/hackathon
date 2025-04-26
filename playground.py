@@ -154,84 +154,35 @@ info_agent = Agent(
 
 # Scheduling Assistant
 scheduling_agent = Agent(
-    name="Blood Donation Scheduling Assistant",
+    name="Blood Donation Scheduling Assistant", 
     agent_id="scheduling_assistant",
     model=Groq(id="llama-3.3-70b-versatile"),
     memory=memory,
     storage=SqliteStorage(table_name="scheduling_sessions", db_file=agent_storage),
-    description="You are a Blood Donation Scheduling Specialist, focused on managing appointments and reminders.",
+    description="You are a Blood Donation Scheduling Specialist",
     instructions=dedent("""\
-        Your role is to handle donation scheduling:
-        
-        First Interaction:
-        1. Ask for gender (separate question)
-        2. After gender is provided, ask for email
-        3. Store both in memory
-        
-        For Scheduling:
-        1. Calculate next eligible date based on gender
-        2. Send confirmation email with calendar integration
-        3. Track donation history
-        
-        Always:
-        - Keep questions separate (gender first, then email)
-        - Verify all required information before scheduling
-        - Send clear confirmation emails
-        - Track intervals (4 months male, 6 months female)"""),
+        Follow these steps in order:
+
+        Step 1: Check memory for gender
+        - If missing, ask and store using memory.add(key='gender')
+        - If present, move to Step 2
+
+        Step 2: Check memory for email
+        - If missing, ask and store using memory.add(key='email') 
+        - If present, move to Step 3
+
+        Step 3: Begin Scheduling
+        - Ask for preferred date and time
+        - Check eligibility based on gender interval
+        - Send confirmation or suggest next available date
+
+        Important:
+        - Never ask for information you already have
+        - Move to next step immediately after storing information
+        - Keep communication friendly and clear"""),
     add_datetime_to_instructions=True,
     markdown=True
 )
-
-# # Agent Tools
-# class AgentTools:
-#     def __init__(self, info_agent, scheduling_agent):
-#         self.info_agent = info_agent
-#         self.scheduling_agent = scheduling_agent
-
-#     def route_to_info(self, query: str) -> str:
-#         return self.info_agent.get_response(query)
-
-#     def route_to_scheduler(self, query: str) -> str:
-#         return self.scheduling_agent.get_response(query)
-
-# agent_tools = AgentTools(info_agent, scheduling_agent)
-
-# # Coordinator Agent
-# coordinator_agent = Agent(
-#     name="Blood Donation Coordinator",
-#     agent_id="coordinator",
-#     model=Groq(id="llama-3.3-70b-versatile"),
-#     storage=SqliteStorage(table_name="coordinator_sessions", db_file=agent_storage),
-#     tools=[agent_tools],
-#     description="You are a Blood Donation Coordinator who routes requests to specialized agents.",
-#     instructions=dedent("""\
-#         Your role is to:
-#         1. Determine user intent and route to appropriate specialist
-#         2. For information queries: Use route_to_info()
-#         3. For scheduling requests: Use route_to_scheduler()
-        
-#         Classification Rules:
-#         - Scheduling: mentions of appointment, booking, dates, availability
-#         - Information: questions about process, eligibility, safety
-        
-#         Always:
-#         - Analyze user intent first
-#         - Route to appropriate specialist using the correct tool
-#         - Maintain conversation context
-#         - Be clear about which specialist is handling the request"""),
-#     add_datetime_to_instructions=True,
-#     markdown=True
-# )
-
-# # Initialize agents
-# info_agent.initialize_agent()
-# scheduling_agent.initialize_agent()
-# coordinator_agent.initialize_agent()
-
-# # Create playground with coordinator
-# app = Playground(agents=[coordinator_agent]).get_app()
-
-
 # Create a team with route mode
 donation_team = Team(
     name="Blood Donation Team",
