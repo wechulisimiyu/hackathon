@@ -10,9 +10,11 @@ dependencies = [
     "fastapi[standard]>=0.115.12",
     "fastembed>=0.6.1",
     "groq>=0.23.1",
+    "ics>=0.7.2",
     "lancedb>=0.22.0",
     "openai>=1.76.0",
     "pypdf>=5.4.0",
     "python-dotenv>=1.1.0",
+    "resend>=2.7.0",
     "sqlalchemy>=2.0.40",
 ]
