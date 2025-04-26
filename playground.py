@@ -1,5 +1,6 @@
 from textwrap import dedent
 from agno.agent import Agent
+from agno.team import Team
 from agno.models.groq import Groq
 from agno.playground import Playground, serve_playground_app
 from agno.storage.sqlite import SqliteStorage
@@ -181,54 +182,86 @@ scheduling_agent = Agent(
     markdown=True
 )
 
-# Agent Tools
-class AgentTools:
-    def __init__(self, info_agent, scheduling_agent):
-        self.info_agent = info_agent
-        self.scheduling_agent = scheduling_agent
+# # Agent Tools
+# class AgentTools:
+#     def __init__(self, info_agent, scheduling_agent):
+#         self.info_agent = info_agent
+#         self.scheduling_agent = scheduling_agent
 
-    def route_to_info(self, query: str) -> str:
-        return self.info_agent.get_response(query)
+#     def route_to_info(self, query: str) -> str:
+#         return self.info_agent.get_response(query)
 
-    def route_to_scheduler(self, query: str) -> str:
-        return self.scheduling_agent.get_response(query)
+#     def route_to_scheduler(self, query: str) -> str:
+#         return self.scheduling_agent.get_response(query)
 
-agent_tools = AgentTools(info_agent, scheduling_agent)
+# agent_tools = AgentTools(info_agent, scheduling_agent)
 
-# Coordinator Agent
-coordinator_agent = Agent(
-    name="Blood Donation Coordinator",
-    agent_id="coordinator",
+# # Coordinator Agent
+# coordinator_agent = Agent(
+#     name="Blood Donation Coordinator",
+#     agent_id="coordinator",
+#     model=Groq(id="llama-3.3-70b-versatile"),
+#     storage=SqliteStorage(table_name="coordinator_sessions", db_file=agent_storage),
+#     tools=[agent_tools],
+#     description="You are a Blood Donation Coordinator who routes requests to specialized agents.",
+#     instructions=dedent("""\
+#         Your role is to:
+#         1. Determine user intent and route to appropriate specialist
+#         2. For information queries: Use route_to_info()
+#         3. For scheduling requests: Use route_to_scheduler()
+        
+#         Classification Rules:
+#         - Scheduling: mentions of appointment, booking, dates, availability
+#         - Information: questions about process, eligibility, safety
+        
+#         Always:
+#         - Analyze user intent first
+#         - Route to appropriate specialist using the correct tool
+#         - Maintain conversation context
+#         - Be clear about which specialist is handling the request"""),
+#     add_datetime_to_instructions=True,
+#     markdown=True
+# )
+
+# # Initialize agents
+# info_agent.initialize_agent()
+# scheduling_agent.initialize_agent()
+# coordinator_agent.initialize_agent()
+
+# # Create playground with coordinator
+# app = Playground(agents=[coordinator_agent]).get_app()
+
+
+# Create a team with route mode
+donation_team = Team(
+    name="Blood Donation Team",
+    mode="route",  # Set to route mode
     model=Groq(id="llama-3.3-70b-versatile"),
-    storage=SqliteStorage(table_name="coordinator_sessions", db_file=agent_storage),
-    tools=[agent_tools],
-    description="You are a Blood Donation Coordinator who routes requests to specialized agents.",
-    instructions=dedent("""\
-        Your role is to:
-        1. Determine user intent and route to appropriate specialist
-        2. For information queries: Use route_to_info()
-        3. For scheduling requests: Use route_to_scheduler()
-        
-        Classification Rules:
-        - Scheduling: mentions of appointment, booking, dates, availability
-        - Information: questions about process, eligibility, safety
-        
-        Always:
-        - Analyze user intent first
-        - Route to appropriate specialist using the correct tool
-        - Maintain conversation context
-        - Be clear about which specialist is handling the request"""),
-    add_datetime_to_instructions=True,
-    markdown=True
+    members=[
+        info_agent,
+        scheduling_agent
+    ],
+    show_tool_calls=True,
+    markdown=True,
+    instructions=[
+        "You are a Blood Donation Team Coordinator that routes queries to specialized agents.",
+        "Route information/eligibility questions to the Information Assistant.",
+        "Route scheduling/appointment requests to the Scheduling Assistant.",
+        "Classification Rules:",
+        "- Information Assistant: Questions about process, eligibility, safety, requirements",
+        "- Scheduling Assistant: Mentions of booking, appointments, dates, scheduling",
+        "Always analyze the intent before routing to ensure accurate agent selection."
+    ],
+    show_members_responses=True
 )
 
-# Initialize agents
-info_agent.initialize_agent()
-scheduling_agent.initialize_agent()
-coordinator_agent.initialize_agent()
+# Initialize the team
+donation_team.initialize_team()
 
-# Create playground with coordinator
-app = Playground(agents=[coordinator_agent]).get_app()
+# Create playground with team instead of coordinator agent
+app = Playground(agents=[info_agent, scheduling_agent]).get_app()
+
+# ...rest of the code remains the same...
 
 # Add memory search function
 def search_user_memories(user_id: str, query: str):
